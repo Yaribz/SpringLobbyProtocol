@@ -6,7 +6,7 @@ Usage examples
 --------------
 Following projects use the SpringLobbyProtocol module:
 * [SpringLobbyInterface](https://github.com/Yaribz/SpringLobbyInterface)
-* [springLobbyLanSrv](https://github.com/Yaribz/springLobbyLanSrv)
+* [LanServer plugin for SPADS](https://github.com/Yaribz/SPADS/tree/master/plugins/officials/LanServer)
 
 Licensing
 ---------
