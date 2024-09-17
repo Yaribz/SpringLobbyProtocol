@@ -32,7 +32,7 @@ use Digest::MD5 'md5_base64';
 
 use base 'Exporter';
 
-our $VERSION='0.13';
+our $VERSION='0.14';
 
 our %EXPORT_TAGS = (
   client => [qw'marshallPasswd marshallClientCommand unmarshallServerCommand'],
@@ -268,7 +268,7 @@ our %SERVER_CMD_NB_PARAMS=(
   RESETPASSWORDREQUESTDENIED => 1,
   RESETPASSWORDACCEPTED => 0,
   RESETPASSWORDDENIED => 1,
-  ADDUSER => 4,
+  ADDUSER => [3,4], # legacy clients expect no accountId in LAN mode
   REMOVEUSER => 1,
   SERVERMSG => 1,
   SERVERMSGBOX => [1,2], # optional url
@@ -438,6 +438,16 @@ sub marshallCommand {
   my @utf8=map {encode('UTF-8',$_,FB_DEFAULT|LEAVE_SRC)} @{$r_u};
   $r_u=\@utf8;
   my $cmd=$r_u->[0];
+  my $nbParams=$r_nbParams->{$cmd};
+  if(defined $nbParams) {
+    my $errorMsg="invalid number of parameters for $cmd command: got $#{$r_u}, expected";
+    if(ref $nbParams) {
+      die "$errorMsg at least $nbParams->[0]\n" if(defined $nbParams->[0] && $#{$r_u} < $nbParams->[0]);
+      die "$errorMsg at most $nbParams->[1]\n" if(defined $nbParams->[1] && $#{$r_u} > $nbParams->[1]);
+    }else{
+      die "$errorMsg $nbParams\n" unless($nbParams == $#{$r_u});
+    }
+  }
   my ($sentencePos,$addSentences);
   if(defined $r_sentencePos->{$cmd}) {
     ($sentencePos,$addSentences)=@{$r_sentencePos->{$r_u->[0]}};
@@ -457,7 +467,7 @@ sub marshallCommand {
     }else{
       $marshalled=join(' ',map {s/ / /gr} @{$r_u});
     }
-  }elsif($#{$r_u} == 1 && ! defined $r_nbParams->{$cmd}) {
+  }elsif($#{$r_u} == 1 && ! defined $nbParams) {
     $marshalled = $cmd.' '.$r_u->[1];
   }else{
     $marshalled=join(' ',map {s/ / /gr} @{$r_u});

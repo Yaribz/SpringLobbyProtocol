@@ -1,3 +1,5 @@
 SpringLobbyProtocol.pm:
 ======================
 0.13: first public version
+0.14: check number of parameters in command marshaller
+      allow 3 parameters for ADDUSER command (for legacy clients with server in LAN mode)
