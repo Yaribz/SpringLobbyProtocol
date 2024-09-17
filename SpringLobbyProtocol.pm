@@ -32,7 +32,7 @@ use Digest::MD5 'md5_base64';
 
 use base 'Exporter';
 
-our $VERSION='0.14';
+our $VERSION='0.15';
 
 our %EXPORT_TAGS = (
   client => [qw'marshallPasswd marshallClientCommand unmarshallServerCommand'],
@@ -222,7 +222,7 @@ our %CLIENT_CMD_NB_PARAMS=(
   SAYBATTLEEX => 1,
   SAYBATTLEPRIVATE => 2,
   SAYBATTLEPRIVATEEX => 2,
-  RING => 1,
+  RING => [1,2], # optional ring originator (protocol extension)
   GETUSERINFO => [0,1],
   FORCELEAVECHANNEL => [2,3], # optional reason
   KICK => [1,2],
