@@ -4,3 +4,4 @@ SpringLobbyProtocol.pm:
 0.14: check number of parameters in command marshaller
       allow 3 parameters for ADDUSER command (for legacy clients with server in LAN mode)
 0.15: allow 2 parameters for RING command from client (for ring originator lobby protocol extension)
+0.16: add REGEX_AIBOTNAME regular expression for validation of AI bot names

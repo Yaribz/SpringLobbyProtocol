@@ -32,12 +32,12 @@ use Digest::MD5 'md5_base64';
 
 use base 'Exporter';
 
-our $VERSION='0.15';
+our $VERSION='0.16';
 
 our %EXPORT_TAGS = (
   client => [qw'marshallPasswd marshallClientCommand unmarshallServerCommand'],
   server => [qw'marshallServerCommand unmarshallClientCommand'],
-  regex => [qw'REGEX_USERNAME REGEX_EMAIL REGEX_VERIFICATIONCODE REGEX_IPV4 REGEX_HOSTHASHES REGEX_COMPFLAGS REGEX_CHANNEL REGEX_BOOL REGEX_ENUM2 REGEX_PORT REGEX_MAXPLAYERS REGEX_INT32 REGEX_RANK REGEX_BATTLEID REGEX_SCRIPTPASSWD REGEX_SCRIPTTAGDEF REGEX_SCRIPTTAG REGEX_UNIT REGEX_NBSPEC REGEX_TEAMID REGEX_STARTRECT REGEX_BANDURATION REGEX_TAGPARAM'],
+  regex => [qw'REGEX_USERNAME REGEX_AIBOTNAME REGEX_EMAIL REGEX_VERIFICATIONCODE REGEX_IPV4 REGEX_HOSTHASHES REGEX_COMPFLAGS REGEX_CHANNEL REGEX_BOOL REGEX_ENUM2 REGEX_PORT REGEX_MAXPLAYERS REGEX_INT32 REGEX_RANK REGEX_BATTLEID REGEX_SCRIPTPASSWD REGEX_SCRIPTTAGDEF REGEX_SCRIPTTAG REGEX_UNIT REGEX_NBSPEC REGEX_TEAMID REGEX_STARTRECT REGEX_BANDURATION REGEX_TAGPARAM'],
   int32 => [qw'INT32_MIN INT32_MAX INT32_RANGE UINT32_MAX UINT32_RANGE'],
     );
 my @COMMON_FUNCTIONS=(qw'marshallClientStatus unmarshallClientStatus marshallBattleStatus unmarshallBattleStatus marshallBattleStatusEx unmarshallBattleStatusEx marshallColor unmarshallColor');
@@ -46,6 +46,7 @@ Exporter::export_ok_tags(keys %EXPORT_TAGS);
 
 use constant {
   REGEX_USERNAME => qr'^[\w\[\]]{1,20}$',
+  REGEX_AIBOTNAME => qr'^[\w\[\]\(\)]{1,20}$',
   REGEX_EMAIL => qr'^[\w\.\!\#\$\%\&\*\+\-\/\=\{\}\~]{1,63}\@(?:[a-zA-Z0-9\-]{1,63}\.){1,5}[a-zA-Z]{1,63}$',
   REGEX_VERIFICATIONCODE => qr'^[a-zA-Z\d]*$',
   REGEX_IPV4 => qr'^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}$',
