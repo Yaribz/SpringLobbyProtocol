@@ -32,7 +32,7 @@ use Digest::MD5 'md5_base64';
 
 use base 'Exporter';
 
-our $VERSION='0.16';
+our $VERSION='0.17';
 
 our %EXPORT_TAGS = (
   client => [qw'marshallPasswd marshallClientCommand unmarshallServerCommand'],
@@ -40,7 +40,7 @@ our %EXPORT_TAGS = (
   regex => [qw'REGEX_USERNAME REGEX_AIBOTNAME REGEX_EMAIL REGEX_VERIFICATIONCODE REGEX_IPV4 REGEX_HOSTHASHES REGEX_COMPFLAGS REGEX_CHANNEL REGEX_BOOL REGEX_ENUM2 REGEX_PORT REGEX_MAXPLAYERS REGEX_INT32 REGEX_RANK REGEX_BATTLEID REGEX_SCRIPTPASSWD REGEX_SCRIPTTAGDEF REGEX_SCRIPTTAG REGEX_UNIT REGEX_NBSPEC REGEX_TEAMID REGEX_STARTRECT REGEX_BANDURATION REGEX_TAGPARAM'],
   int32 => [qw'INT32_MIN INT32_MAX INT32_RANGE UINT32_MAX UINT32_RANGE'],
     );
-my @COMMON_FUNCTIONS=(qw'marshallClientStatus unmarshallClientStatus marshallBattleStatus unmarshallBattleStatus marshallBattleStatusEx unmarshallBattleStatusEx marshallColor unmarshallColor');
+my @COMMON_FUNCTIONS=(qw'DEFAULT_CLIENTSTATUS DEFAULT_CLIENTBATTLESTATUS DEFAULT_TEAMCOLOR marshallClientStatus unmarshallClientStatus marshallBattleStatus unmarshallBattleStatus marshallBattleStatusEx unmarshallBattleStatusEx marshallColor unmarshallColor');
 map {push(@{$EXPORT_TAGS{$_}},@COMMON_FUNCTIONS)} (qw'client server');
 Exporter::export_ok_tags(keys %EXPORT_TAGS);
 
@@ -51,7 +51,7 @@ use constant {
   REGEX_VERIFICATIONCODE => qr'^[a-zA-Z\d]*$',
   REGEX_IPV4 => qr'^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}$',
   REGEX_HOSTHASHES => qr'^(\d{1,10})(?: ([\da-fA-F]{1,16}))?$',
-  REGEX_COMPFLAGS => qr'^[a-zA-Z]{1,20}(?: [a-zA-Z]{1,20}){1,20}$',
+  REGEX_COMPFLAGS => qr'^(?:[a-zA-Z]{1,20}(?: [a-zA-Z]{1,20}){0,20})?$',
   REGEX_CHANNEL => qr'^[a-zA-Z\d_]{1,20}$',
   REGEX_BOOL => qr'^[01]$',
   REGEX_ENUM2 => qr'^[012]$',
@@ -76,6 +76,10 @@ use constant {
   UINT32_MAX => 4294967295,
   UINT32_RANGE => 4294967296,
 };
+
+sub DEFAULT_CLIENTSTATUS {{bot => 0, access => 0, rank => 0, away => 0, inGame => 0}}
+sub DEFAULT_CLIENTBATTLESTATUS {{side => 0, sync => 0, bonus => 0, mode => 0, team => 0, id => 0, ready => 0 }}
+sub DEFAULT_TEAMCOLOR {{red => 0, green => 0, blue => 0}}
 
 our %CLIENT_CMD_SENTENCE_POS = (
   REQUESTUPDATEFILE => [1],
@@ -111,7 +115,7 @@ our %CLIENT_CMD_SENTENCE_POS = (
 
 our %SERVER_CMD_SENTENCE_POS = (
   OK => [1],
-  FAILED => [1],
+  FAILED => [1,-1],
   REGISTRATIONDENIED => [1],
   DENIED => [1],
   AGREEMENT => [1],
@@ -247,7 +251,7 @@ our %CLIENT_CMD_NB_PARAMS=(
 
 our %SERVER_CMD_NB_PARAMS=(
   OK => 1,
-  FAILED => 1,
+  FAILED => [1,undef],
   TASSERVER => 4,
   PONG => 0,
   REGISTRATIONDENIED => 1,

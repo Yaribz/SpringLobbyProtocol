@@ -5,3 +5,6 @@ SpringLobbyProtocol.pm:
       allow 3 parameters for ADDUSER command (for legacy clients with server in LAN mode)
 0.15: allow 2 parameters for RING command from client (for ring originator lobby protocol extension)
 0.16: add REGEX_AIBOTNAME regular expression for validation of AI bot names
+0.17: allow multiple parameters for FAILED command
+      fix REGEX_COMPFLAGS regular expression not accepting empty or singleton compatibility flags
+      add DEFAULT_CLIENTSTATUS, DEFAULT_CLIENTBATTLESTATUS and DEFAULT_TEAMCOLOR constants/functions
