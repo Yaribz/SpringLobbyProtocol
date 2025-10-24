@@ -8,3 +8,9 @@ SpringLobbyProtocol.pm:
 0.17: allow multiple parameters for FAILED command
       fix REGEX_COMPFLAGS regular expression not accepting empty or singleton compatibility flags
       add DEFAULT_CLIENTSTATUS, DEFAULT_CLIENTBATTLESTATUS and DEFAULT_TEAMCOLOR constants/functions
+0.18: add REGEX_ACCOUNTID regular expression for validation of account IDs
+      add Teiserver specific commands for friend management: (s|c).user.(add_friend|rescind_friend_request|accept_friend_request|decline_friend_request|remove_friend), s.user.(new_incoming_friend_request|friend_request_accepted|friend_request_declined|friend_request_rescinded|friend_deleted)
+      add Teiserver specific commands for user relationship management: (s|c).user.(whois|whoisName|list_relationships), c.user.(ignore|avoid|block|reset_relationship), NO
+      add Teiserver specific commands regarding battles: (s|c).battle.(queue_status|update_lobby_title)
+      allow any number of parameters for OK command, including none (for Teiserver compatibility)
+      allow 6 parameters for ADDSTARTRECT command (compatibility with TASClient bug that adds a space after last parameter)

@@ -2,7 +2,7 @@
 #
 # Marshallers and unmarshallers for the SpringRTS lobby protocol.
 #
-# Copyright (C) 2024  Yann Riou <yaribzh@gmail.com>
+# Copyright (C) 2025  Yann Riou <yaribzh@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -32,12 +32,12 @@ use Digest::MD5 'md5_base64';
 
 use base 'Exporter';
 
-our $VERSION='0.17';
+our $VERSION='0.18';
 
 our %EXPORT_TAGS = (
   client => [qw'marshallPasswd marshallClientCommand unmarshallServerCommand'],
   server => [qw'marshallServerCommand unmarshallClientCommand'],
-  regex => [qw'REGEX_USERNAME REGEX_AIBOTNAME REGEX_EMAIL REGEX_VERIFICATIONCODE REGEX_IPV4 REGEX_HOSTHASHES REGEX_COMPFLAGS REGEX_CHANNEL REGEX_BOOL REGEX_ENUM2 REGEX_PORT REGEX_MAXPLAYERS REGEX_INT32 REGEX_RANK REGEX_BATTLEID REGEX_SCRIPTPASSWD REGEX_SCRIPTTAGDEF REGEX_SCRIPTTAG REGEX_UNIT REGEX_NBSPEC REGEX_TEAMID REGEX_STARTRECT REGEX_BANDURATION REGEX_TAGPARAM'],
+  regex => [qw'REGEX_USERNAME REGEX_ACCOUNTID REGEX_AIBOTNAME REGEX_EMAIL REGEX_VERIFICATIONCODE REGEX_IPV4 REGEX_HOSTHASHES REGEX_COMPFLAGS REGEX_CHANNEL REGEX_BOOL REGEX_ENUM2 REGEX_PORT REGEX_MAXPLAYERS REGEX_INT32 REGEX_RANK REGEX_BATTLEID REGEX_SCRIPTPASSWD REGEX_SCRIPTTAGDEF REGEX_SCRIPTTAG REGEX_UNIT REGEX_NBSPEC REGEX_TEAMID REGEX_STARTRECT REGEX_BANDURATION REGEX_TAGPARAM'],
   int32 => [qw'INT32_MIN INT32_MAX INT32_RANGE UINT32_MAX UINT32_RANGE'],
     );
 my @COMMON_FUNCTIONS=(qw'DEFAULT_CLIENTSTATUS DEFAULT_CLIENTBATTLESTATUS DEFAULT_TEAMCOLOR marshallClientStatus unmarshallClientStatus marshallBattleStatus unmarshallBattleStatus marshallBattleStatusEx unmarshallBattleStatusEx marshallColor unmarshallColor');
@@ -46,6 +46,7 @@ Exporter::export_ok_tags(keys %EXPORT_TAGS);
 
 use constant {
   REGEX_USERNAME => qr'^[\w\[\]]{1,20}$',
+  REGEX_ACCOUNTID => qr'^\d{1,15}$',
   REGEX_AIBOTNAME => qr'^[\w\[\]\(\)]{1,20}$',
   REGEX_EMAIL => qr'^[\w\.\!\#\$\%\&\*\+\-\/\=\{\}\~]{1,63}\@(?:[a-zA-Z0-9\-]{1,63}\.){1,5}[a-zA-Z]{1,63}$',
   REGEX_VERIFICATIONCODE => qr'^[a-zA-Z\d]*$',
@@ -111,10 +112,15 @@ our %CLIENT_CMD_SENTENCE_POS = (
   DECLINEFRIENDREQUEST => [1,-1],
   UNFRIEND => [1,-1],
   FRIENDREQUESTLIST => [1,-1],
+  
+  'c.user.add_friend' => [1,-1],
+  'c.user.rescind_friend_request' => [1,-1],
+  'c.user.remove_friend' => [1,-1],
+  'c.battle.update_lobby_title' => [1],
     );
 
 our %SERVER_CMD_SENTENCE_POS = (
-  OK => [1],
+  OK => [1,-1],
   FAILED => [1,-1],
   REGISTRATIONDENIED => [1],
   DENIED => [1],
@@ -163,6 +169,15 @@ our %SERVER_CMD_SENTENCE_POS = (
   UNFRIEND => [1,-1],
   FRIENDREQUESTLIST => [1,-1],
   FRIENDLIST => [1,-1],
+
+  NO => [1,-1],
+  's.user.add_friend' => [1,2],
+  's.user.accept_friend_request' => [1,2],
+  's.user.decline_friend_request' => [1,2],
+  's.user.rescind_friend_request' => [1,2],
+  's.user.remove_friend' => [1,2],
+  's.battle.queue_status' => [1,-1],
+  's.battle.update_lobby_title' => [1,1],
     );
 
 our %CLIENT_CMD_NB_PARAMS=(
@@ -218,7 +233,7 @@ our %CLIENT_CMD_NB_PARAMS=(
   DISABLEUNITS => [1,undef],
   ENABLEUNITS => [1,undef],
   ENABLEALLUNITS => 0,
-  ADDSTARTRECT => 5,
+  ADDSTARTRECT => [5,6], # TASClient bug (space after last parameter)
   REMOVESTARTRECT => 1,
   SCRIPTSTART => 0,
   SCRIPT => 1,
@@ -247,10 +262,25 @@ our %CLIENT_CMD_NB_PARAMS=(
   UNFRIEND => 1,
   FRIENDREQUESTLIST => [0,1], # optional type
   FRIENDLIST => 0,
+
+  'c.user.add_friend' => [1,undef],
+  'c.user.accept_friend_request' => 1,
+  'c.user.decline_friend_request' => 1,
+  'c.user.rescind_friend_request' => [1,undef],
+  'c.user.remove_friend' => [1,undef],
+  'c.user.whois' => 1,
+  'c.user.whoisName' => 1,
+  'c.user.list_relationships' => 0,
+  'c.user.ignore' => 1,
+  'c.user.avoid' => 1,
+  'c.user.block' => 1,
+  'c.user.reset_relationship' => 1,
+  'c.battle.queue_status' => 0,
+  'c.battle.update_lobby_title' => 1,
     );
 
 our %SERVER_CMD_NB_PARAMS=(
-  OK => 1,
+  OK => [0,undef],
   FAILED => [1,undef],
   TASSERVER => 4,
   PONG => 0,
@@ -353,6 +383,23 @@ our %SERVER_CMD_NB_PARAMS=(
   JOINEDFROM => 3,
   LEFTFROM => 3,
   CLIENTSFROM => 3,
+  
+  NO => [1,undef],
+  's.user.add_friend' => [2,3],
+  's.user.new_incoming_friend_request' => 1,
+  's.user.accept_friend_request' => [2,3],
+  's.user.friend_request_accepted' => 1,
+  's.user.decline_friend_request' => [2,3],
+  's.user.friend_request_declined' => 1,
+  's.user.rescind_friend_request' => [2,3],
+  's.user.friend_request_rescinded' => 1,
+  's.user.remove_friend' => [2,3],
+  's.user.friend_deleted' => 1,
+  's.user.whois' => 2,
+  's.user.whoisName' => 2,
+  's.user.list_relationships' => 1,
+  's.battle.queue_status' => [1,undef],
+  's.battle.update_lobby_title' => 2,
   );
 
 # Marshallers/unmarshallers ###################################################
